@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 密码管理系统{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>安全可靠的密码管理</h1>
+            <p class="hero-description">
+                一个简单而强大的密码管理系统，帮助您安全地存储和管理所有在线账户的密码
+            </p>
+            
+            {% if not current_user.is_authenticated %}
+            <div class="hero-actions">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">
+                    <i class="fas fa-sign-in-alt"></i> 立即登录
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline btn-large">
+                    <i class="fas fa-user-plus"></i> 注册新账户
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <h2 class="section-title">为什么选择我们的密码管理器？</h2>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>军事级加密</h3>
+                <p>使用AES-256加密技术，确保您的密码数据绝对安全</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>多设备同步</h3>
+                <p>在任何设备上访问您的密码，随时随地保持同步</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>快速填充</h3>
+                <p>一键自动填充登录信息，节省时间提高效率</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3>双重验证</h3>
+                <p>支持OTP和安全问题双重验证，增强账户安全性</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="security-section">
+    <div class="container">
+        <h2 class="section-title">安全特性</h2>
+        <div class="security-features">
+            <div class="security-item">
+                <i class="fas fa-fingerprint"></i>
+                <span>无密码登录系统</span>
+            </div>
+            <div class="security-item">
+                <i class="fas fa-sms"></i>
+                <span>手机号码验证</span>
+            </div>
+            <div class="security-item">
+                <i class="fas fa-question-circle"></i>
+                <span>安全问题保护</span>
+            </div>
+            <div class="security-item">
+                <i class="fas fa-lock"></i>
+                <span>端到端加密</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-large {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+}
+
+.btn-outline:hover {
+    background: white;
+    color: var(--primary-color);
+}
+
+.features-section {
+    padding: 80px 0;
+    background: var(--light-color);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--dark-color);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.security-section {
+    padding: 60px 0;
+    background: white;
+}
+
+.security-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.security-item {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--light-color);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.security-item:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.security-item i {
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: var(--primary-color);
+}
+
+.security-item:hover i {
+    color: white;
+}
+
+.security-item span {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* responsive design */
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .security-features {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

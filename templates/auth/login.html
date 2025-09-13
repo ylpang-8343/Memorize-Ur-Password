@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 密码管理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>登录密码管理系统</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="identifier">用户名、邮箱或手机号</label>
+                    <input type="text" id="identifier" name="identifier" required 
+                           placeholder="请输入用户名、邮箱或手机号">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">获取验证码</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>还没有账户？ <a href="{{ url_for('register') }}">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

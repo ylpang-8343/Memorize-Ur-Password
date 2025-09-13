@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全问题验证 - 密码管理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>安全问题验证</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <p>请回答您的安全问题以完成登录</p>
+            
+            <div class="security-question-display">
+                <strong>{{ question }}</strong>
+            </div>
+            
+            <form method="POST" action="{{ url_for('security_question') }}">
+                <div class="form-group">
+                    <label for="answer">答案</label>
+                    <input type="text" id="answer" name="answer" required 
+                           placeholder="请输入您的答案">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">验证</button>
+            </form>
+            
+            <div class="auth-links">
+                <p><a href="{{ url_for('otp_verification') }}">返回OTP验证</a></p>
+                <p><a href="{{ url_for('login') }}">返回登录</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

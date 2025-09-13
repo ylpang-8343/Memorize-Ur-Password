@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证身份 - 密码管理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>身份验证</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% if development_otp %}
+                <div class="dev-otp-hint">
+                    <p>开发模式：验证码是 <strong>{{ development_otp }}</strong></p>
+                </div>
+            {% endif %}
+            
+            <p>我们已向您的注册邮箱/手机发送了验证码，请输入6位验证码</p>
+            
+            <form method="POST" action="{{ url_for('otp_verification') }}">
+                <div class="form-group">
+                    <label for="otp">验证码</label>
+                    <input type="text" id="otp" name="otp" required 
+                           placeholder="请输入6位验证码" maxlength="6" pattern="[0-9]{6}">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">验证</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>没有收到验证码？ <a href="{{ url_for('login') }}">重新发送</a></p>
+                <p><a href="{{ url_for('login') }}">返回登录</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

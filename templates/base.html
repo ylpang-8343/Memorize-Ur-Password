@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}密码管理系统{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-lock sidebar-logo"></i>
+                <h1 class="sidebar-title">密码管理器</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">首页</span>
+                </a>
+                <a href="{{ url_for('add_password') }}" class="nav-item {% if request.endpoint == 'add_password' %}active{% endif %}">
+                    <i class="fas fa-plus-circle nav-icon"></i>
+                    <span class="nav-text">添加密码</span>
+                </a>
+                <a href="{{ url_for('find_password') }}" class="nav-item {% if request.endpoint == 'find_password' %}active{% endif %}">
+                    <i class="fas fa-search nav-icon"></i>
+                    <span class="nav-text">查找密码</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- main content area -->
+        <main class="main-content">
+            <!-- top nav -->
+            <header class="top-nav">
+                <div class="page-title">
+                    <h2>{% block page_title %}密码管理系统{% endblock %}</h2>
+                    <p>{% block page_subtitle %}安全地存储和管理您的所有密码{% endblock %}</p>
+                </div>
+                
+                <div class="user-menu">
+                    <div class="user-avatar" onclick="toggleDropdown()">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    
+                    <div class="dropdown-menu" id="userDropdown">
+                        <div class="user-status">
+                            <span class="status-indicator"></span>
+                            <span>状态: 在线</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('settings') }}" class="dropdown-item">
+                            <i class="fas fa-user-circle dropdown-icon"></i>
+                            <span>用户资料</span>
+                        </a>
+                        <a href="{{ url_for('settings') }}" class="dropdown-item">
+                            <i class="fas fa-cog dropdown-icon"></i>
+                            <span>设置</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('logout') }}" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt dropdown-icon"></i>
+                            <span>退出登录</span>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- main content -->
+            <div class="content-block">
+                {% block content %}
+
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // toggle dropdown menu
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // click outside to close the dropdown
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('userDropdown');
+            const avatar = document.querySelector('.user-avatar');
+            
+            if (!avatar.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // initialise when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('密码管理系统已加载');
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
