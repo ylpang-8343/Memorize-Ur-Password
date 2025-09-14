@@ -1,2 +1,2 @@
 # Memorize-Ur-Password
-A web application to record your account password.
+A flask-based web application to record your account password.
