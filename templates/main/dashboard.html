@@ -108,11 +108,11 @@
         </div>
         <div class="security-item">
             <i class="fas fa-check-circle"></i>
-            <span>会话安全</span>
+            <span>无密码登录</span>
         </div>
         <div class="security-item">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>建议定期更换主密码</span>
+            <i class="fas fa-check-circle"></i>
+            <span>安全问题保护</span>
         </div>
     </div>
 </div>
@@ -343,7 +343,7 @@
     color: var(--warning-color);
 }
 
-/* 响应式设计 */
+/* responsive design */
 @media (max-width: 768px) {
     .dashboard-stats {
         grid-template-columns: 1fr;
@@ -369,16 +369,16 @@
 {% block extra_js %}
 <script>
 function viewPassword(passwordId) {
-    // 查看密码详情
+    // view password details
     window.location.href = `/view-password/${passwordId}`;
 }
 
 function editPassword(passwordId) {
-    // 编辑密码
+    // edit password
     window.location.href = `/edit-password/${passwordId}`;
 }
 
-// 页面加载时初始化
+// initialise when document is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('仪表板已加载');
 });

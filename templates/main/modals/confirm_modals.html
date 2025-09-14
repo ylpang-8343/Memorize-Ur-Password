@@ -1,0 +1,782 @@
+<!-- delete password modal -->
+<div id="deletePasswordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-trash"></i> 确认删除密码</h3>
+            <span class="close" onclick="closeModal('deletePasswordModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>您确定要删除这个密码记录吗？此操作无法撤销。</p>
+            <div class="password-preview" id="deletePasswordPreview">
+                <!-- password -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('deletePasswordModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-danger" onclick="confirmDeletePassword()">
+                <i class="fas fa-check"></i> 确认删除
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- delete all passwords modal -->
+<div id="deleteAllPasswordsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-trash"></i> 确认删除所有密码</h3>
+            <span class="close" onclick="closeModal('deleteAllPasswordsModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="warning-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>危险操作！</h4>
+            </div>
+            <p>您确定要删除<strong>所有</strong>密码记录吗？</p>
+            <ul class="warning-list">
+                <li>此操作将永久删除所有保存的密码</li>
+                <li>操作无法撤销</li>
+                <li>建议先备份数据再执行此操作</li>
+            </ul>
+            <div class="confirmation-input">
+                <label for="deleteConfirmText">请输入 "DELETE ALL" 确认操作：</label>
+                <input type="text" id="deleteConfirmText" class="form-control" 
+                       placeholder="DELETE ALL" oninput="validateDeleteAll()">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('deleteAllPasswordsModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-danger" id="confirmDeleteAllBtn" disabled onclick="confirmDeleteAll()">
+                <i class="fas fa-check"></i> 确认删除所有密码
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- delete account modal -->
+<div id="deleteAccountModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-slash"></i> 确认注销账户</h3>
+            <span class="close" onclick="closeModal('deleteAccountModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="warning-message critical">
+                <i class="fas fa-radiation"></i>
+                <h4>极度危险操作！</h4>
+            </div>
+            <p>您确定要永久注销您的账户吗？</p>
+            <ul class="warning-list">
+                <li>所有密码数据将被永久删除</li>
+                <li>账户信息将无法恢复</li>
+                <li>此操作无法撤销</li>
+                <li>请确保已备份所有重要数据</li>
+            </ul>
+            <div class="confirmation-text">
+                <p>请确认您了解此操作的后果，账户注销后将无法恢复。</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('deleteAccountModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-danger" id="confirmDeleteAccountBtn" onclick="confirmDeleteAccount()">
+                <i class="fas fa-check"></i> 确认注销账户
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- logout other device modal -->
+<div id="logoutOtherDevicesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-sign-out-alt"></i> 确认退出其他设备</h3>
+            <span class="close" onclick="closeModal('logoutOtherDevicesModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>您确定要退出所有其他设备的登录会话吗？</p>
+            <ul>
+                <li>其他设备上的登录会话将被立即终止</li>
+                <li>您需要重新在其他设备上登录</li>
+                <li>当前设备不受影响</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('logoutOtherDevicesModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-warning" onclick="confirmLogoutOtherDevices()">
+                <i class="fas fa-check"></i> 确认退出
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- backup confirm modal -->
+<div id="backupConfirmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-download"></i> 创建备份</h3>
+            <span class="close" onclick="closeModal('backupConfirmModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>即将创建数据备份文件：</p>
+            <div class="backup-info">
+                <p><strong>文件名：</strong> <span id="backupFileName">backup_{{ current_time }}.encrypted</span></p>
+                <p><strong>包含数据：</strong> 所有密码记录和设置</p>
+                <p><strong>文件格式：</strong> AES-256 加密压缩文件</p>
+            </div>
+            <div class="form-group">
+                <label for="backupPassword">设置备份密码：</label>
+                <input type="password" id="backupPassword" class="form-control" 
+                       placeholder="输入备份密码" required>
+                <div class="form-help">请记住此密码，恢复备份时需要</div>
+            </div>
+            <div class="form-group">
+                <label for="confirmBackupPassword">确认备份密码：</label>
+                <input type="password" id="confirmBackupPassword" class="form-control" 
+                       placeholder="再次输入备份密码" required oninput="validateBackupPassword()">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('backupConfirmModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-primary" id="confirmBackupBtn" disabled onclick="confirmBackup()">
+                <i class="fas fa-download"></i> 创建备份
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- restore confirm modal -->
+<div id="restoreConfirmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-upload"></i> 恢复备份</h3>
+            <span class="close" onclick="closeModal('restoreConfirmModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="warning-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>注意：恢复操作将覆盖现有数据</h4>
+            </div>
+            <p>您确定要恢复备份文件吗？</p>
+            <ul class="warning-list">
+                <li>当前数据将被备份文件中的数据替换</li>
+                <li>恢复过程中请勿关闭浏览器</li>
+                <li>确保备份文件来自可信来源</li>
+            </ul>
+            <div class="form-group">
+                <label for="restoreFile">选择备份文件：</label>
+                <input type="file" id="restoreFile" class="form-control" 
+                       accept=".encrypted,.json" required>
+            </div>
+            <div class="form-group">
+                <label for="restorePassword">备份密码：</label>
+                <input type="password" id="restorePassword" class="form-control" 
+                       placeholder="输入备份密码" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('restoreConfirmModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-primary" onclick="confirmRestore()">
+                <i class="fas fa-upload"></i> 开始恢复
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- export confirm modal -->
+<div id="exportConfirmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-export"></i> 导出数据</h3>
+            <span class="close" onclick="closeModal('exportConfirmModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>选择导出格式：</p>
+            <div class="export-options">
+                <label class="export-option">
+                    <input type="radio" name="exportFormat" value="json" checked>
+                    <i class="fas fa-file-code"></i>
+                    <span>JSON 格式（可读性高）</span>
+                </label>
+                <label class="export-option">
+                    <input type="radio" name="exportFormat" value="csv">
+                    <i class="fas fa-file-csv"></i>
+                    <span>CSV 格式（兼容性好）</span>
+                </label>
+                <label class="export-option">
+                    <input type="radio" name="exportFormat" value="encrypted">
+                    <i class="fas fa-lock"></i>
+                    <span>加密格式（安全性高）</span>
+                </label>
+            </div>
+            <div class="form-group" id="exportPasswordGroup" style="display: none;">
+                <label for="exportPassword">设置导出密码：</label>
+                <input type="password" id="exportPassword" class="form-control" 
+                       placeholder="输入导出密码">
+                <div class="form-help">保护导出文件的安全</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('exportConfirmModal')">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-primary" onclick="confirmExport()">
+                <i class="fas fa-download"></i> 导出数据
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- success modal -->
+<div id="successModal" class="modal">
+    <div class="modal-content success">
+        <div class="modal-header">
+            <h3><i class="fas fa-check-circle"></i> 操作成功</h3>
+            <span class="close" onclick="closeModal('successModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="successMessage">操作已成功完成</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('successModal')">
+                确定
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- error modal -->
+<div id="errorModal" class="modal">
+    <div class="modal-content error">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-circle"></i> 操作失败</h3>
+            <span class="close" onclick="closeModal('errorModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="errorMessage">操作过程中出现错误</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('errorModal')">
+                确定
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* modal basics */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-content.success {
+    border-top: 4px solid var(--success-color);
+}
+
+.modal-content.error {
+    border-top: 4px solid var(--danger-color);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    background: var(--light-color);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-header h3 i {
+    color: inherit;
+}
+
+.close {
+    color: var(--gray-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close:hover {
+    color: var(--dark-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e9ecef;
+    background: var(--light-color);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+/* warning message */
+.warning-message {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #fef3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.warning-message.critical {
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+.warning-message i {
+    font-size: 1.5rem;
+    color: #f59e0b;
+}
+
+.warning-message.critical i {
+    color: #ef4444;
+}
+
+.warning-message h4 {
+    margin: 0;
+    color: #92400e;
+}
+
+.warning-message.critical h4 {
+    color: #b91c1c;
+}
+
+.warning-list {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.warning-list li {
+    margin-bottom: 0.5rem;
+    color: var(--gray-color);
+}
+
+/* password preview */
+.password-preview {
+    background: var(--light-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* confirmation input */
+.confirmation-input {
+    margin: 1.5rem 0;
+}
+
+.confirmation-input label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+/* backup info */
+.backup-info {
+    background: var(--light-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.backup-info p {
+    margin: 0.5rem 0;
+}
+
+/* export options */
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.export-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.export-option:hover {
+    border-color: var(--primary-color);
+    background: var(--light-color);
+}
+
+.export-option input[type="radio"]:checked + i + span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.export-option i {
+    color: var(--primary-color);
+    width: 20px;
+    text-align: center;
+}
+
+/* animation */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* responsive design */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 1rem;
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+    
+    .export-options {
+        gap: 0.5rem;
+    }
+    
+    .export-option {
+        padding: 0.75rem;
+    }
+}
+</style>
+
+<script>
+// save current operation data
+let currentOperationData = {
+    passwordId: null,
+    passwordInfo: null
+};
+
+// open modal
+function openModal(modalId, data = null) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'block';
+    
+    if (data) {
+        currentOperationData = { ...currentOperationData, ...data };
+    }
+    
+    // if opening delete password modal, populate password info
+    if (modalId === 'deletePasswordModal' && data && data.passwordInfo) {
+        document.getElementById('deletePasswordPreview').innerHTML = `
+            <strong>平台：</strong> ${data.passwordInfo.platform}<br>
+            <strong>用户名：</strong> ${data.passwordInfo.username}
+        `;
+    }
+    
+    document.body.style.overflow = 'hidden';
+}
+
+// close modal
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentOperationData = { passwordId: null, passwordInfo: null };
+}
+
+// click outside to close modal
+window.addEventListener('click', function(event) {
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (event.target === modal) {
+            closeModal(modal.id);
+        }
+    });
+});
+
+// verify delete all confirmation input
+function validateDeleteAll() {
+    const input = document.getElementById('deleteConfirmText');
+    const button = document.getElementById('confirmDeleteAllBtn');
+    button.disabled = input.value !== 'DELETE ALL';
+}
+
+// verify delete account password input
+function validateDeleteAccount() {
+    const input = document.getElementById('deleteAccountConfirmText');
+    const button = document.getElementById('confirmDeleteAccountBtn');
+    button.disabled = input.value.length < 1;
+}
+
+// verify backup passwords match
+function validateBackupPassword() {
+    const password = document.getElementById('backupPassword');
+    const confirmPassword = document.getElementById('confirmBackupPassword');
+    const button = document.getElementById('confirmBackupBtn');
+    
+    button.disabled = !password.value || password.value !== confirmPassword.value;
+}
+
+// show/hide export password field
+document.querySelectorAll('input[name="exportFormat"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const passwordGroup = document.getElementById('exportPasswordGroup');
+        passwordGroup.style.display = this.value === 'encrypted' ? 'block' : 'none';
+    });
+});
+
+// show success message
+function showSuccess(message) {
+    document.getElementById('successMessage').textContent = message;
+    openModal('successModal');
+}
+
+// show error message
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    openModal('errorModal');
+}
+
+// confirm delete password
+function confirmDeletePassword() {
+    if (currentOperationData.passwordId) {
+        // fetch api to delete password
+        fetch(`/delete-password/${currentOperationData.passwordId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess('密码删除成功');
+                closeModal('deletePasswordModal');
+                // refresh the page or remove the deleted item from the list
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showError('删除失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            showError('网络错误：' + error.message);
+        });
+    }
+}
+
+// other confirm functions (to be implemented in the specific page)
+function confirmDeleteAll() {
+    // delete all passwords logic
+    fetch('/delete-all-passwords', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('所有密码已删除');
+            closeModal('deleteAllPasswordsModal');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showError('删除失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+
+function confirmDeleteAccount() {
+    fetch('/delete-account', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('账户已注销');
+            closeModal('deleteAccountModal');
+            setTimeout(() => window.location.href = '/logout', 1500);
+        } else {
+            showError('注销失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+
+function confirmLogoutOtherDevices() {
+    // logout other devices logic
+    fetch('/logout-other-devices', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('已退出所有其他设备');
+            closeModal('logoutOtherDevicesModal');
+        } else {
+            showError('操作失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+
+function confirmBackup() {
+    // backup logic
+    const password = document.getElementById('backupPassword').value;
+    fetch('/backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.download_url) {
+            showSuccess('备份创建成功，正在下载...');
+            closeModal('backupConfirmModal');
+            setTimeout(() => window.location.href = data.download_url, 1500);
+        } else {
+            showError('备份失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+
+function confirmRestore() {
+    // restore logic
+    const fileInput = document.getElementById('restoreFile');
+    const password = document.getElementById('restorePassword').value;
+    if (fileInput.files.length === 0) {
+        showError('请选择备份文件');
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('password', password);
+
+    fetch('/restore', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('数据恢复成功');
+            closeModal('restoreConfirmModal');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showError('恢复失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+
+function confirmExport() {
+    // export logic
+    const format = document.querySelector('input[name="exportFormat"]:checked').value;
+    const password = format === 'encrypted' ? document.getElementById('exportPassword').value : '';
+    fetch('/export', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ format: format, password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.download_url) {
+            showSuccess('导出成功，正在下载...');
+            closeModal('exportConfirmModal');
+            setTimeout(() => window.location.href = data.download_url, 1500);
+        } else {
+            showError('导出失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('网络错误：' + error.message);
+    });
+}
+</script>
