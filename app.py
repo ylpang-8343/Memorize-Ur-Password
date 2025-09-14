@@ -101,6 +101,15 @@ def decrypt_password_filter(encrypted_password, user_id_str):
     except:
         return "解密失败"
 
+@app.template_filter('password_mask')
+def password_mask_filter(password):
+    if not password:
+        return ''
+    # Show only first and last character, mask the rest
+    if len(password) <= 2:
+        return '*' * len(password)
+    return password[0] + '*' * (len(password) - 2) + password[-1]
+
 # Security questions
 SECURITY_QUESTIONS = [
     "您母亲的生日月份是？",
@@ -138,7 +147,7 @@ def login():
             session['pending_username'] = user.username
             
             # Generate and print OTP (in real app, send via email/SMS)
-            otp_code = user.verify_otp()
+            otp_code = pyotp.TOTP(user.otp_secret).now()
             print(f"DEBUG: OTP for {user.username} is {otp_code}")
             
             flash('验证码已发送到您的邮箱/手机', 'info')
@@ -147,7 +156,7 @@ def login():
             flash('用户不存在，请先注册', 'error')
             return redirect(url_for('register'))
     
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -161,30 +170,30 @@ def register():
         # Validate input
         if not username or not email or not security_question or not security_answer:
             flash('所有字段均为必填项', 'error')
-            return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+            return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
         
         if not is_valid_email(email):
             flash('请输入有效的邮箱地址', 'error')
-            return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+            return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
         
         if phone:
             if not is_valid_phone(phone):
                 flash('请输入有效的马来西亚手机号码', 'error')
-                return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+                return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
             phone = format_malaysia_phone(phone)
         
         # Check for existing user
         if User.query.filter_by(username=username).first():
             flash('用户名已存在', 'error')
-            return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+            return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
         
         if User.query.filter_by(email=email).first():
             flash('邮箱已存在', 'error')
-            return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+            return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
         
         if phone and User.query.filter_by(phone=phone).first():
             flash('手机号已存在', 'error')
-            return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+            return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
         
         # Create new user
         user = User(
@@ -202,7 +211,7 @@ def register():
         flash('注册成功，请登录', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html', security_questions=SECURITY_QUESTIONS)
+    return render_template('auth/register.html', security_questions=SECURITY_QUESTIONS)
 
 @app.route('/otp-verification', methods=['GET', 'POST'])
 def otp_verification():
@@ -228,7 +237,7 @@ def otp_verification():
     # Show OTP directly in development mode
     development_otp = pyotp.TOTP(user.otp_secret).now() if app.debug else None
     
-    return render_template('otp.html', development_otp=development_otp)
+    return render_template('auth/otp.html', development_otp=development_otp)
 
 @app.route('/resend-otp')
 def resend_otp():
@@ -272,7 +281,7 @@ def security_question():
         else:
             flash('安全问题答案错误', 'error')
     
-    return render_template('security_question.html', question=user.security_question)
+    return render_template('auth/security_question.html', question=user.security_question)
 
 @app.route('/dashboard')
 def dashboard():
@@ -292,7 +301,7 @@ def dashboard():
         except:
             pass
     
-    return render_template('dashboard.html', 
+    return render_template('main/dashboard.html', 
                          user=user,
                          passwords=passwords,
                          strong_passwords_count=strong_passwords_count,
@@ -313,11 +322,11 @@ def add_password():
         # Form validation
         if not platform or not username or not password:
             flash('请填写所有必填字段', 'error')
-            return render_template('add_password.html')
+            return render_template('main/add_password.html')
         
         if password != confirm_password:
             flash('两次输入的密码不一致', 'error')
-            return render_template('add_password.html')
+            return render_template('main/add_password.html')
         
         # Encrypt password
         encrypted_password = encrypt_password(password, session['user_id'])
@@ -336,7 +345,7 @@ def add_password():
         flash('密码保存成功', 'success')
         return redirect(url_for('dashboard'))
     
-    return render_template('add_password.html')
+    return render_template('main/add_password.html')
 
 @app.route('/find-password')
 def find_password():
@@ -372,7 +381,7 @@ def find_password():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     passwords = pagination.items
     
-    return render_template('find_password.html',
+    return render_template('main/find_password.html',
                          passwords=passwords,
                          search_query=search_query,
                          sort_by=sort_by,
@@ -380,13 +389,79 @@ def find_password():
                          page=page,
                          total_pages=pagination.pages)
 
+@app.route('/edit-password/<int:password_id>', methods=['GET', 'POST'])
+def edit_password(password_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    entry = PasswordEntry.query.filter_by(id=password_id, user_id=session['user_id']).first()
+    if not entry:
+        flash('密码记录不存在', 'error')
+        return redirect(url_for('find_password'))
+    if request.method == 'POST':
+        entry.platform = request.form.get('platform')
+        entry.username = request.form.get('username')
+        password = request.form.get('password')
+        if password:
+            entry.encrypted_password = encrypt_password(password, session['user_id'])
+        entry.notes = request.form.get('notes')
+        db.session.commit()
+        flash('密码已更新', 'success')
+        return redirect(url_for('find_password'))
+    return render_template('main/edit_password.html', password=entry)
+
+@app.route('/view-password/<int:password_id>')
+def view_password(password_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    entry = PasswordEntry.query.filter_by(id=password_id, user_id=session['user_id']).first()
+    if not entry:
+        flash('密码记录不存在', 'error')
+        return redirect(url_for('find_password'))
+    
+    # decrypt password for viewing
+    decrypted_password = decrypt_password(entry.encrypted_password, session['user_id'])
+    
+    return render_template('main/view_password.html', 
+                         password=entry,
+                         decrypted_password=decrypted_password)
+
 @app.route('/settings')
 def settings():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user = User.query.get(session['user_id'])
-    return render_template('settings.html', user=user)
+    preferences = session.get('preferences', {
+        'auto_lock': True,
+        'show_passwords': False,
+        'backup_reminder': True,
+        'theme': 'light'
+    })
+    # You may also want to provide backup info for the backup tab
+    backup_files = []
+    backup_dir = 'backups'
+    if os.path.exists(backup_dir):
+        for fname in os.listdir(backup_dir):
+            fpath = os.path.join(backup_dir, fname)
+            if os.path.isfile(fpath):
+                stat = os.stat(fpath)
+                backup_files.append({
+                    'name': fname,
+                    'size': f"{stat.st_size // 1024} KB",
+                    'date': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M')
+                })
+    backup_count = len(backup_files)
+    last_backup = backup_files[-1]['date'] if backup_files else None
+
+    return render_template(
+        'main/settings.html',
+        user=user,
+        preferences=preferences,
+        backup_files=backup_files,
+        backup_count=backup_count,
+        last_backup=last_backup
+    )
 
 @app.route('/generate-qr-code')
 def generate_qr_code():
@@ -429,6 +504,25 @@ def update_profile():
     
     db.session.commit()
     return jsonify(success=True, message="个人信息更新成功")
+
+@app.route('/update-preferences', methods=['POST'])
+def update_preferences():
+    if 'user_id' not in session:
+        return jsonify(success=False, message="未登录")
+    # You can save preferences to session or database as needed
+    auto_lock = bool(request.form.get('auto_lock'))
+    show_passwords = bool(request.form.get('show_passwords'))
+    backup_reminder = bool(request.form.get('backup_reminder'))
+    theme = request.form.get('theme', 'light')
+    # Example: save to session (replace with DB if needed)
+    session['preferences'] = {
+        'auto_lock': auto_lock,
+        'show_passwords': show_passwords,
+        'backup_reminder': backup_reminder,
+        'theme': theme
+    }
+    flash('偏好设置已保存', 'success')
+    return redirect(url_for('settings'))
 
 @app.route('/update-security-question', methods=['POST'])
 def update_security_question():
