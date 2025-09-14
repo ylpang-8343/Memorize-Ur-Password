@@ -308,7 +308,7 @@
                         <div class="danger-item">
                             <h4>删除所有密码</h4>
                             <p>永久删除所有保存的密码记录</p>
-                            <button class="btn btn-danger" onclick="confirmDeleteAllPasswords()">
+                            <button class="btn btn-danger" onclick="openModal('deleteAllPasswordsModal')">
                                 <i class="fas fa-trash"></i> 删除所有密码
                             </button>
                         </div>
@@ -316,7 +316,7 @@
                         <div class="danger-item">
                             <h4>注销账户</h4>
                             <p>永久删除账户和所有数据</p>
-                            <button class="btn btn-danger" onclick="confirmDeleteAccount()">
+                            <button class="btn btn-danger" onclick="openDeleteAccountModal()">
                                 <i class="fas fa-user-slash"></i> 注销账户
                             </button>
                         </div>
@@ -753,9 +753,8 @@ function confirmDeleteAllPasswords() {
     console.log('确认删除所有密码');
 }
 
-function confirmDeleteAccount() {
+function openDeleteAccountModal() {
     openModal('deleteAccountModal');
-    console.log('确认删除账户');
 }
 
 function logoutOtherDevices() {
@@ -763,9 +762,26 @@ function logoutOtherDevices() {
     console.log('退出其他设备');
 }
 
+function debugModal() {
+    console.log('Checking modals...');
+    const modals = ['deleteAccountModal', 'successModal', 'errorModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        console.log(modalId, 'exists:', !!modal);
+        if (modal) {
+            console.log(modalId, 'display:', modal.style.display);
+        }
+    });
+}
+
 // initialise when document is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('设置页面已加载');
+    debugModal();
+
+    window.testModal = function() {
+        openModal('deleteAccountModal');
+    };
 });
 </script>
 {% endblock %}

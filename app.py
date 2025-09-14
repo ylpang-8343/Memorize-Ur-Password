@@ -565,15 +565,13 @@ def toggle_otp():
     db.session.commit()
     return jsonify(success=True, message=message)
 
-@app.route('/delete-password/<int:password_id>', methods=['DELETE'])
+@app.route('/delete-password/<int:password_id>', methods=['POST', 'DELETE'])
 def delete_password(password_id):
     if 'user_id' not in session:
         return jsonify(success=False, message="未登录")
-    
     entry = PasswordEntry.query.filter_by(id=password_id, user_id=session['user_id']).first()
     if not entry:
         return jsonify(success=False, message="密码记录不存在")
-    
     db.session.delete(entry)
     db.session.commit()
     return jsonify(success=True, message="密码删除成功")
@@ -592,16 +590,24 @@ def delete_account():
     if 'user_id' not in session:
         return jsonify(success=False, message="未登录")
     
-    # Delete all passwords first
-    PasswordEntry.query.filter_by(user_id=session['user_id']).delete()
-    
-    # Delete user account
-    user = User.query.get(session['user_id'])
-    db.session.delete(user)
-    db.session.commit()
-    
-    session.clear()
-    return jsonify(success=True, message="账户已注销")
+    try:
+        # Delete all passwords first
+        PasswordEntry.query.filter_by(user_id=session['user_id']).delete()
+        
+        # Delete user account
+        user = User.query.get(session['user_id'])
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            
+            session.clear()
+            return jsonify(success=True, message="账户已注销")
+        else:
+            return jsonify(success=False, message="用户不存在")
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=f"注销失败: {str(e)}")
 
 @app.route('/logout-other-devices', methods=['POST'])
 def logout_other_devices():

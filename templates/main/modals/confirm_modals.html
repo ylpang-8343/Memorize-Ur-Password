@@ -77,7 +77,7 @@
                 <li>请确保已备份所有重要数据</li>
             </ul>
             <div class="confirmation-text">
-                <p>请确认您了解此操作的后果，账户注销后将无法恢复。</p>
+                <p><strong>警告：</strong>此操作将永久删除您的所有数据。请谨慎操作。</p>
             </div>
         </div>
         <div class="modal-footer">
@@ -593,14 +593,26 @@ document.querySelectorAll('input[name="exportFormat"]').forEach(radio => {
 
 // show success message
 function showSuccess(message) {
-    document.getElementById('successMessage').textContent = message;
-    openModal('successModal');
+    const successModal = document.getElementById('successModal');
+    const successMessage = document.getElementById('successMessage');
+    if (successModal && successMessage) {
+        successMessage.textContent = message;
+        successModal.style.display = 'block';
+    } else {
+        alert('成功：' + message);
+    }
 }
 
 // show error message
 function showError(message) {
-    document.getElementById('errorMessage').textContent = message;
-    openModal('errorModal');
+    const errorModal = document.getElementById('errorModal');
+    const errorMessage = document.getElementById('errorMessage');
+    if (errorModal && errorMessage) {
+        errorMessage.textContent = message;
+        errorModal.style.display = 'block';
+    } else {
+        alert('错误：' + message);
+    }
 }
 
 // confirm delete password
@@ -655,23 +667,37 @@ function confirmDeleteAll() {
 }
 
 function confirmDeleteAccount() {
+    console.log('开始注销账户...');
+    
     fetch('/delete-account', {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
-        }
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('响应状态:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP错误: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('响应数据:', data);
         if (data.success) {
-            showSuccess('账户已注销');
+            showSuccess('账户已成功注销');
             closeModal('deleteAccountModal');
-            setTimeout(() => window.location.href = '/logout', 1500);
+            setTimeout(() => {
+                window.location.href = '/logout'; // make sure redirect to login page and clear session
+            }, 2000);
         } else {
-            showError('注销失败：' + data.message);
+            showError('注销失败：' + (data.message || '未知错误'));
         }
     })
     .catch(error => {
+        console.error('错误详情:', error);
         showError('网络错误：' + error.message);
     });
 }
