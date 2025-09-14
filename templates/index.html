@@ -11,7 +11,7 @@
                 一个简单而强大的密码管理系统，帮助您安全地存储和管理所有在线账户的密码
             </p>
             
-            {% if not current_user.is_authenticated %}
+            {% if 'user_id' not in session %}
             <div class="hero-actions">
                 <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">
                     <i class="fas fa-sign-in-alt"></i> 立即登录

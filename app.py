@@ -230,6 +230,22 @@ def otp_verification():
     
     return render_template('otp.html', development_otp=development_otp)
 
+@app.route('/resend-otp')
+def resend_otp():
+    if 'pending_user_id' not in session:
+        flash('请先登录', 'error')
+        return redirect(url_for('login'))
+    
+    user_id = session['pending_user_id']
+    user = User.query.get(user_id)
+    
+    # regenerate and print OTP
+    otp_code = user.get_otp()
+    print(f"DEBUG: 重新发送的OTP for {user.username} is {otp_code}")
+    
+    flash('验证码已重新发送', 'info')
+    return redirect(url_for('otp_verification'))
+
 @app.route('/security-question', methods=['GET', 'POST'])
 def security_question():
     # Check for pending user and OTP verification

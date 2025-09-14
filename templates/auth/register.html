@@ -35,8 +35,9 @@
                 <div class="form-group">
                     <label for="phone">手机号码（可选）</label>
                     <input type="tel" id="phone" name="phone" 
-                           placeholder="例如: 0123456789 或 +60123456789">
-                    <small>格式: 01x-xxxxxxx 或 +601x-xxxxxxx</small>
+                            placeholder="例如: 0123456789 或 +60123456789"
+                            pattern="(\+?60|0)(1[0-9]{8,9}|[2-9][0-9]{7,8})">
+                    <small>马来西亚格式: 01x-xxxxxxx 或 +601x-xxxxxxx（无需输入横线）</small>
                 </div>
                 
                 <div class="form-group">
