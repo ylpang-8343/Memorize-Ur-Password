@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
@@ -20,6 +21,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Initialize database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Database models
 class User(db.Model):
@@ -27,7 +29,7 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20))
-    otp_secret = db.Column(db.String(32), nullable=False)
+    otp_secret = db.Column(db.String(32), nullable=True)
     security_question = db.Column(db.String(200), nullable=False)
     security_answer_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -509,20 +511,31 @@ def update_profile():
 def update_preferences():
     if 'user_id' not in session:
         return jsonify(success=False, message="未登录")
-    # You can save preferences to session or database as needed
-    auto_lock = bool(request.form.get('auto_lock'))
-    show_passwords = bool(request.form.get('show_passwords'))
-    backup_reminder = bool(request.form.get('backup_reminder'))
-    theme = request.form.get('theme', 'light')
-    # Example: save to session (replace with DB if needed)
-    session['preferences'] = {
-        'auto_lock': auto_lock,
-        'show_passwords': show_passwords,
-        'backup_reminder': backup_reminder,
-        'theme': theme
-    }
-    flash('偏好设置已保存', 'success')
-    return redirect(url_for('settings'))
+    
+    try:
+        # get preferences from form
+        auto_lock = request.form.get('auto_lock') == 'on'
+        show_passwords = request.form.get('show_passwords') == 'on'
+        backup_reminder = request.form.get('backup_reminder') == 'on'
+        theme = request.form.get('theme', 'light')
+        
+        # save to session
+        session['preferences'] = {
+            'auto_lock': auto_lock,
+            'show_passwords': show_passwords,
+            'backup_reminder': backup_reminder,
+            'theme': theme
+        }
+        
+        # set session to be permanent
+        session.permanent = True
+        
+        flash('偏好设置已保存', 'success')
+        return redirect(url_for('settings'))
+        
+    except Exception as e:
+        flash(f'保存失败: {str(e)}', 'error')
+        return redirect(url_for('settings'))
 
 @app.route('/update-security-question', methods=['POST'])
 def update_security_question():

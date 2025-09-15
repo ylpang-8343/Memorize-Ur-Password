@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="theme-{{ session.preferences.theme if session.preferences and session.preferences.theme else 'light' }}">
     <div class="app-container">
         <!-- sidebar -->
         <aside class="sidebar">
