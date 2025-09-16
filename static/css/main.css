@@ -14,6 +14,74 @@
     --border-radius: 12px;
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
+    
+    /* default theme */
+    --bg-color: #f5f7fa;
+    --text-color: #212529;
+    --card-bg: white;
+    --border-color: #e9ecef;
+    --sidebar-bg: var(--primary-color);
+    --sidebar-text: white;
+    --input-bg: white;
+    --input-border: #ced4da;
+    --input-text: #495057;
+}
+
+/* dark theme */
+.theme-dark {
+    --bg-color: #1a1d21;
+    --text-color: #e4e6eb;
+    --card-bg: #242526;
+    --border-color: #3e4042;
+    --sidebar-bg: #1a1d21;
+    --sidebar-text: #e4e6eb;
+    --gray-color: #b0b3b8;
+    --input-bg: #3a3b3c;
+    --input-border: #4e4f50;
+    --input-text: #e4e6eb;
+}
+
+/* light theme */
+.theme-light {
+    --bg-color: #f5f7fa;
+    --text-color: #212529;
+    --card-bg: white;
+    --border-color: #e9ecef;
+    --sidebar-bg: var(--primary-color);
+    --sidebar-text: white;
+    --input-bg: white;
+    --input-border: #ced4da;
+    --input-text: #495057;
+}
+
+/* theme with system */
+@media (prefers-color-scheme: dark) {
+    .theme-auto {
+        --bg-color: #1a1d21;
+        --text-color: #e4e6eb;
+        --card-bg: #242526;
+        --border-color: #3e4042;
+        --sidebar-bg: #1a1d21;
+        --sidebar-text: #e4e6eb;
+        --gray-color: #b0b3b8;
+        --input-bg: #3a3b3c;
+        --input-border: #4e4f50;
+        --input-text: #e4e6eb;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    .theme-auto {
+        --bg-color: #f5f7fa;
+        --text-color: #212529;
+        --card-bg: white;
+        --border-color: #e9ecef;
+        --sidebar-bg: var(--primary-color);
+        --sidebar-text: white;
+        --input-bg: white;
+        --input-border: #ced4da;
+        --input-text: #495057;
+    }
 }
 
 /* General */
@@ -25,10 +93,11 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: #f5f7fa;
-    color: var(--dark-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Layout */
@@ -40,8 +109,8 @@ body {
 /* Sidebar */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--primary-color);
-    color: white;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
     padding: 1.5rem 1rem;
     transition: var(--transition);
     box-shadow: var(--box-shadow);
@@ -82,7 +151,7 @@ body {
     cursor: pointer;
     transition: var(--transition);
     text-decoration: none;
-    color: white;
+    color: var(--sidebar-text);
 }
 
 .nav-item:hover {
@@ -115,17 +184,18 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
+    background: var(--card-bg);
     padding: 1rem 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin-bottom: 2rem;
     height: var(--header-height);
+    border: 1px solid var(--border-color);
 }
 
 .page-title h2 {
     font-weight: 600;
-    color: var(--dark-color);
+    color: var(--text-color);
 }
 
 .page-title p {
@@ -161,7 +231,7 @@ body {
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     width: 200px;
@@ -169,6 +239,7 @@ body {
     z-index: 1000;
     display: none;
     margin-top: 10px;
+    border: 1px solid var(--border-color);
 }
 
 .dropdown-menu.show {
@@ -183,11 +254,11 @@ body {
     cursor: pointer;
     transition: var(--transition);
     text-decoration: none;
-    color: var(--dark-color);
+    color: var(--text-color);
 }
 
 .dropdown-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--bg-color);
     color: var(--primary-color);
 }
 
@@ -200,7 +271,7 @@ body {
 
 .dropdown-divider {
     height: 1px;
-    background-color: #e9ecef;
+    background-color: var(--border-color);
     margin: 0.5rem 0;
 }
 
@@ -222,11 +293,12 @@ body {
 
 /* Content Cards */
 .content-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     padding: 2rem;
     margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
 }
 
 .card-header {
@@ -235,13 +307,84 @@ body {
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .card-title {
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--dark-color);
+    color: var(--text-color);
+}
+
+/* Form Elements */
+.form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--input-text);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+.form-label {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    display: block;
+    font-weight: 500;
+}
+
+.form-help {
+    color: var(--gray-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Buttons */
+.btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
 }
 
 /* Alerts */

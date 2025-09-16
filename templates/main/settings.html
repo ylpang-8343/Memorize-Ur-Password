@@ -39,7 +39,7 @@
                     <h3 class="card-title">个人信息</h3>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('update_profile') }}">
+                    <form method="POST" action="{{ url_for('update_profile') }}" id="profileForm">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="username" class="form-label">用户名</label>
@@ -397,12 +397,6 @@
     animation: fadeIn 0.3s ease;
 }
 
-.form-help {
-    font-size: 0.875rem;
-    color: var(--gray-color);
-    margin-top: 0.25rem;
-}
-
 .security-status {
     margin-bottom: 1.5rem;
 }
@@ -708,18 +702,40 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-// apply theme on load
+// apply theme on load and change
 function applyTheme(theme) {
-    document.body.className = `theme-${theme}`;
+    // Remove all theme classes
+    document.body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+    
+    // Add the selected theme class
+    document.body.classList.add(`theme-${theme}`);
+    
+    // Update theme in session via AJAX
+    fetch('/update-preferences', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `theme=${theme}&auto_lock=${document.querySelector('[name="auto_lock"]').checked ? 'on' : 'off'}&show_passwords=${document.querySelector('[name="show_passwords"]').checked ? 'on' : 'off'}&backup_reminder=${document.querySelector('[name="backup_reminder"]').checked ? 'on' : 'off'}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('主题设置已保存:', theme);
+        } else {
+            console.error('保存主题设置失败:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('保存主题设置失败:', error);
+    });
+    
     console.log('应用主题:', theme);
 }
 
-document.getElementById('theme').addEventListener('change', function() {
-    applyTheme(this.value);
-});
-
-// handle preferences form submission
-document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+// handle profile form submission
+document.getElementById('profileForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
@@ -731,24 +747,81 @@ document.getElementById('preferencesForm').addEventListener('submit', function(e
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => {
-        if (response.redirected) {
-            window.location.href = response.url;
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.success) {
+            showSuccess(data.message);
         } else {
-            return response.json();
+            showError('更新失败: ' + (data.message || '未知错误'));
         }
     })
+    .catch(error => {
+        console.error('更新失败:', error);
+        showError('更新失败，请重试');
+    });
+});
+
+// handle preferences form submission
+document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const theme = document.getElementById('theme').value;
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
     .then(data => {
         if (data && data.success) {
             showSuccess('偏好设置已保存');
-            // reload to apply changes
-            setTimeout(() => window.location.reload(), 1000);
+            // Apply theme immediately
+            applyTheme(theme);
+        } else {
+            showError('保存失败: ' + (data.message || '未知错误'));
         }
     })
     .catch(error => {
         console.error('保存失败:', error);
         showError('保存失败，请重试');
     });
+});
+
+// handle security question form submission
+document.querySelectorAll('form').forEach(form => {
+    if (form.action.includes('update_security_question')) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    showSuccess(data.message);
+                    // empty the form
+                    this.reset();
+                } else {
+                    showError('更新失败: ' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('更新失败:', error);
+                showError('更新失败，请重试');
+            });
+        });
+    }
 });
 
 // initialise theme on page load
@@ -761,6 +834,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeSelect = document.getElementById('theme');
     if (themeSelect) {
         themeSelect.value = currentTheme;
+        
+        // Add event listener for theme change
+        themeSelect.addEventListener('change', function() {
+            applyTheme(this.value);
+        });
     }
 });
 

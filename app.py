@@ -440,7 +440,7 @@ def settings():
         'backup_reminder': True,
         'theme': 'light'
     })
-    # You may also want to provide backup info for the backup tab
+    # Provide backup info for the backup tab
     backup_files = []
     backup_dir = 'backups'
     if os.path.exists(backup_dir):
@@ -485,27 +485,56 @@ def generate_qr_code():
 @app.route('/update-profile', methods=['POST'])
 def update_profile():
     if 'user_id' not in session:
-        return jsonify(success=False, message="未登录")
+        flash('请先登录', 'error')
+        return redirect(url_for('login'))
     
     user = User.query.get(session['user_id'])
     email = request.form.get('email')
     phone = request.form.get('phone')
     
-    if email and email != user.email:
-        if User.query.filter_by(email=email).first():
-            return jsonify(success=False, message="邮箱已存在")
-        user.email = email
+    # check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
-    if phone and phone != user.phone:
-        if not is_valid_phone(phone):
-            return jsonify(success=False, message="无效的手机号码")
-        formatted_phone = format_malaysia_phone(phone)
-        if User.query.filter_by(phone=formatted_phone).first():
-            return jsonify(success=False, message="手机号已存在")
-        user.phone = formatted_phone
+    try:
+        if email and email != user.email:
+            if User.query.filter_by(email=email).first():
+                if is_ajax:
+                    return jsonify(success=False, message="邮箱已存在")
+                else:
+                    flash('邮箱已存在', 'error')
+                    return redirect(url_for('settings'))
+            user.email = email
+        
+        if phone and phone != user.phone:
+            if not is_valid_phone(phone):
+                if is_ajax:
+                    return jsonify(success=False, message="无效的手机号码")
+                else:
+                    flash('无效的手机号码', 'error')
+                    return redirect(url_for('settings'))
+            formatted_phone = format_malaysia_phone(phone)
+            if User.query.filter_by(phone=formatted_phone).first():
+                if is_ajax:
+                    return jsonify(success=False, message="手机号已存在")
+                else:
+                    flash('手机号已存在', 'error')
+                    return redirect(url_for('settings'))
+            user.phone = formatted_phone
+        
+        db.session.commit()
+        
+        if is_ajax:
+            return jsonify(success=True, message="个人信息更新成功")
+        else:
+            flash('个人信息更新成功', 'success')
+            return redirect(url_for('settings'))
     
-    db.session.commit()
-    return jsonify(success=True, message="个人信息更新成功")
+    except Exception as e:
+        if is_ajax:
+            return jsonify(success=False, message=f"更新失败: {str(e)}")
+        else:
+            flash(f'更新失败: {str(e)}', 'error')
+            return redirect(url_for('settings'))
 
 @app.route('/update-preferences', methods=['POST'])
 def update_preferences():
@@ -530,34 +559,61 @@ def update_preferences():
         # set session to be permanent
         session.permanent = True
         
+        # if AJAX request, return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True, message="偏好设置已保存")
+        
         flash('偏好设置已保存', 'success')
         return redirect(url_for('settings'))
         
     except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=f'保存失败: {str(e)}')
+        
         flash(f'保存失败: {str(e)}', 'error')
         return redirect(url_for('settings'))
 
 @app.route('/update-security-question', methods=['POST'])
 def update_security_question():
     if 'user_id' not in session:
-        return jsonify(success=False, message="未登录")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message="未登录")
+        else:
+            flash('请先登录', 'error')
+            return redirect(url_for('login'))
     
     user = User.query.get(session['user_id'])
     security_question = request.form.get('security_question')
     security_answer = request.form.get('security_answer')
     confirm_security_answer = request.form.get('confirm_security_answer')
     
+    # check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     if not security_question or not security_answer or not confirm_security_answer:
-        return jsonify(success=False, message="请填写所有字段")
+        if is_ajax:
+            return jsonify(success=False, message="请填写所有字段")
+        else:
+            flash('请填写所有字段', 'error')
+            return redirect(url_for('settings'))
     
     if security_answer != confirm_security_answer:
-        return jsonify(success=False, message="两次输入的答案不一致")
+        if is_ajax:
+            return jsonify(success=False, message="两次输入的答案不一致")
+        else:
+            flash('两次输入的答案不一致', 'error')
+            return redirect(url_for('settings'))
     
     user.security_question = security_question
     user.set_security_answer(security_answer)
     
     db.session.commit()
-    return jsonify(success=True, message="安全问题更新成功")
+    
+    if is_ajax:
+        return jsonify(success=True, message="安全问题更新成功")
+    else:
+        flash('安全问题更新成功', 'success')
+        return redirect(url_for('settings'))
 
 @app.route('/toggle-otp', methods=['POST'])
 def toggle_otp():
