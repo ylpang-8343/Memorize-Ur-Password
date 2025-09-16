@@ -251,7 +251,7 @@ def resend_otp():
     user = User.query.get(user_id)
     
     # regenerate and print OTP
-    otp_code = user.get_otp()
+    otp_code = pyotp.TOTP(user.otp_secret).now()
     print(f"DEBUG: 重新发送的OTP for {user.username} is {otp_code}")
     
     flash('验证码已重新发送', 'info')
